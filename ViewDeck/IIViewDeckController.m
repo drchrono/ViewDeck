@@ -294,8 +294,6 @@ __typeof__(h) __h = (h);                                    \
 
 - (void)didReceiveMemoryWarning
 {
-    [super didReceiveMemoryWarning];
-    
     [self.centerController didReceiveMemoryWarning];
     [self.leftController didReceiveMemoryWarning];
     [self.rightController didReceiveMemoryWarning];
