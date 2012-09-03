@@ -609,6 +609,16 @@ __typeof__(h) __h = (h);                                    \
 
 #pragma mark - rotation
 
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
+- (void)viewWillLayoutSubviews
+{
+	[super viewWillLayoutSubviews];
+	[self arrangeViewsAfterRotation];
+	[self restoreShadowToSlidingView];
+	[self applyShadowToSlidingView];
+}
+#endif
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     _preRotationWidth = self.referenceBounds.size.width;
