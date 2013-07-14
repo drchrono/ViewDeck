@@ -11,23 +11,6 @@
 
 @implementation SelectionController
 
-- (id)initWithStyle:(UITableViewStyle)style
-{
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
-
-- (void)didReceiveMemoryWarning
-{
-    // Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
-}
-
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -36,21 +19,25 @@
 
     self.tableView.backgroundColor = [UIColor colorWithWhite:0.2 alpha:1];
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+
+    self.navigationItem.leftBarButtonItems = [NSArray arrayWithObjects:
+                                              [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStyleBordered target:self action:@selector(back)],
+                                              [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStyleBordered target:self action:@selector(showSelector)],
+                                              nil];
+    
+    self.navigationItem.title = @"Slide away";
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
+- (void)back {
+    [self.viewDeckController closeLeftView];
+    [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)showSelector {
+    [self.viewDeckController toggleLeftViewAnimated:YES];
 }
 
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    // Return YES for supported orientations
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
 
 #pragma mark - Table view data source
 

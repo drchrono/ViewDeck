@@ -30,7 +30,11 @@
     IIViewDeckController* deckController =  [[IIViewDeckController alloc] initWithCenterViewController:self.centerController 
                                                                                     leftViewController:self.leftController
                                                                                    rightViewController:rightController];
-    deckController.rightLedge = 100;
+    deckController.rightSize = 100;
+    
+    /* To adjust speed of open/close animations, set either of these two properties. */
+    // deckController.openSlideAnimationDuration = 0.15f;
+    // deckController.closeSlideAnimationDuration = 0.5f;
     
     self.window.rootViewController = deckController;
     [self.window makeKeyAndVisible];

@@ -39,9 +39,19 @@
 
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"left" style:UIBarButtonItemStyleBordered target:self.viewDeckController action:@selector(toggleLeftView)];
     
+    if ([self.navigationItem respondsToSelector:@selector(leftBarButtonItems)]) {
+        self.navigationItem.leftBarButtonItems = [NSArray arrayWithObjects:
+                                                  [[UIBarButtonItem alloc] initWithTitle:@"left" style:UIBarButtonItemStyleBordered target:self.viewDeckController action:@selector(toggleLeftView)],
+                                                  [[UIBarButtonItem alloc] initWithTitle:@"bounce" style:UIBarButtonItemStyleBordered target:self action:@selector(previewBounceLeftView)],
+                                                  nil];
+    } else {
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"left" style:UIBarButtonItemStyleBordered target:self.viewDeckController action:@selector(toggleLeftView)];
+    }
+    
     if ([self.navigationItem respondsToSelector:@selector(rightBarButtonItems)]) {
         self.navigationItem.rightBarButtonItems = [NSArray arrayWithObjects:
                                                    [[UIBarButtonItem alloc] initWithTitle:@"right" style:UIBarButtonItemStyleBordered target:self.viewDeckController action:@selector(toggleRightView)],
+                                                   [[UIBarButtonItem alloc] initWithTitle:@"bounce" style:UIBarButtonItemStyleBordered target:self action:@selector(previewBounceRightView)],
                                                    [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCamera target:self action:@selector(showCam:)],
                                                    nil];
     }
@@ -60,11 +70,13 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    [self.viewDeckController openLeftViewAnimated:NO];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    [self.viewDeckController closeLeftViewAnimated:YES];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -83,6 +95,22 @@
     return YES;
 }
 
+- (void)previewBounceLeftView {
+    [self.viewDeckController previewBounceView:IIViewDeckLeftSide];
+}
+
+- (void)previewBounceRightView {
+    [self.viewDeckController previewBounceView:IIViewDeckRightSide];
+}
+
+- (void)previewBounceTopView {
+    [self.viewDeckController previewBounceView:IIViewDeckTopSide];
+}
+
+- (void)previewBounceBottomView {
+    [self.viewDeckController previewBounceView:IIViewDeckBottomSide];
+}
+
 - (void)showCam:(id)sender {
     UIImagePickerController* picker = [[UIImagePickerController alloc] init];
     picker.delegate = self;
@@ -90,6 +118,7 @@
         picker.sourceType =  UIImagePickerControllerSourceTypeCamera;
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        [self.popoverController dismissPopoverAnimated:NO];
         self.popoverController = [[UIPopoverController alloc] initWithContentViewController:picker];
         [self.popoverController presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES]; 
     }
@@ -143,10 +172,10 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (!indexPath.section) {
-        self.viewDeckController.leftLedge = MAX(indexPath.row*44,10);
+        self.viewDeckController.leftSize = MAX(indexPath.row*44,10);
     }
     else {
-        self.viewDeckController.rightLedge = MAX(indexPath.row*44,10);
+        self.viewDeckController.rightSize = MAX(indexPath.row*44,10);
     }
 }
 

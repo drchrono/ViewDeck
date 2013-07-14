@@ -4,13 +4,15 @@
 //
 
 #import "ChoiceController.h"
-#import "PathlikeSliderController.h"
+#import "PhotosController.h"
+#import "SelectionController.h"
+#import "IIViewDeckController.h"
 
-@interface ChoiceController () {
+@interface ChoiceController () <IIViewDeckControllerDelegate> {
     IIViewDeckPanningMode _panning;
     IIViewDeckCenterHiddenInteractivity _centerHidden;
     IIViewDeckNavigationControllerBehavior _navBehavior;
-    IIViewDeckRotationBehavior _rotBehavior;
+    IIViewDeckSizeMode _sizeMode;
     BOOL _elastic;
     CGFloat _maxLedge;
 }
@@ -28,20 +30,13 @@
         _panning = IIViewDeckNoPanning;
         _centerHidden = IIViewDeckCenterHiddenUserInteractive;
         _navBehavior = IIViewDeckNavigationControllerContained;
-        _rotBehavior = IIViewDeckRotationKeepsLedgeSizes;
+        _sizeMode = IIViewDeckLedgeSizeMode;
         _elastic = YES;
         _maxLedge = 0;
     }
     return self;
 }
 
-- (void)didReceiveMemoryWarning
-{
-    // Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
-}
 
 #pragma mark - View lifecycle
 
@@ -53,13 +48,6 @@
     self.view.backgroundColor = [UIColor colorWithWhite:0.3 alpha:1];
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
     // Return YES for supported orientations
@@ -68,21 +56,28 @@
 
 
 - (IBAction)pressedNavigate:(id)sender {
-    PathlikeSliderController* controller = [[PathlikeSliderController alloc] init];  
+    PhotosController* photosController = [[PhotosController alloc] initWithNibName:@"PhotosController" bundle:nil];
+    SelectionController* selectionController = [[SelectionController alloc] initWithNibName:@"SelectionController" bundle:nil];
+
+    IIViewDeckController* controller = [[IIViewDeckController alloc] initWithCenterViewController:photosController leftViewController:selectionController];
     controller.panningMode = _panning;
     controller.centerhiddenInteractivity = _centerHidden;
     controller.navigationControllerBehavior = _navBehavior;
     controller.panningView = self.panningView;
-    controller.maxLedge = _maxLedge > 0 ? self.view.bounds.size.width-_maxLedge : 0;
-    controller.rotationBehavior = _rotBehavior;
+    controller.maxSize = _maxLedge > 0 ? self.view.bounds.size.width-_maxLedge : 0;
+    controller.sizeMode = _sizeMode;
     controller.elastic = _elastic;
+    controller.leftSize = 320;
+    controller.delegate = self;
+    [controller openLeftView];
+    
     [self.navigationController pushViewController:controller animated:YES];
 }
 
 - (IBAction)panningChanged:(id)sender {
     UISegmentedControl* control = (UISegmentedControl*)sender;
     
-    IIViewDeckPanningMode values[] = { IIViewDeckNoPanning, IIViewDeckFullViewPanning, IIViewDeckNavigationBarPanning, IIViewDeckPanningViewPanning };
+    IIViewDeckPanningMode values[] = { IIViewDeckNoPanning, IIViewDeckFullViewPanning, IIViewDeckNavigationBarPanning, IIViewDeckPanningViewPanning, IIViewDeckDelegatePanning, IIViewDeckNavigationBarOrOpenCenterPanning };
     _panning = values[control.selectedSegmentIndex];
 }
 
@@ -103,8 +98,8 @@
 - (IBAction)rotationChanged:(id)sender {
     UISegmentedControl* control = (UISegmentedControl*)sender;
     
-    IIViewDeckRotationBehavior values[] = { IIViewDeckRotationKeepsLedgeSizes, IIViewDeckRotationKeepsViewSizes };
-    _rotBehavior = values[control.selectedSegmentIndex];
+    IIViewDeckSizeMode values[] = { IIViewDeckLedgeSizeMode, IIViewDeckViewSizeMode };
+    _sizeMode = values[control.selectedSegmentIndex];
 }
 
 - (IBAction)elasticChanged:(id)sender {
@@ -115,5 +110,38 @@
     _maxLedge = ((UISlider*)sender).value;
 }
 
+#define CGRectOffsetRightAndShrink(rect, offset)         \
+({                                                        \
+__typeof__(rect) __r = (rect);                          \
+__typeof__(offset) __o = (offset);                      \
+(CGRect) {  { __r.origin.x, __r.origin.y },            \
+{ __r.size.width - __o, __r.size.height }  \
+};                                            \
+})
+
+- (BOOL)viewDeckController:(IIViewDeckController *)viewDeckController shouldPan:(UIPanGestureRecognizer *)panGestureRecognizer {
+    CGRect halfRect = self.navigationController.navigationBar.bounds;
+    halfRect = CGRectOffsetRightAndShrink(halfRect, halfRect.size.width/2);
+    
+    UIView* flash = [UIView new];
+    BOOL ok = CGRectContainsPoint(halfRect, [panGestureRecognizer locationInView:self.navigationController.navigationBar]);
+    if (ok) {
+        flash.frame = halfRect;
+        flash.backgroundColor = [UIColor colorWithRed:0 green:1 blue:0 alpha:0.5];
+    }
+    else {
+        flash.frame = self.navigationController.navigationBar.bounds;
+        flash.backgroundColor = [UIColor colorWithRed:1 green:0 blue:0 alpha:0.5];
+    }
+
+    [self.navigationController.navigationBar addSubview:flash];
+    [UIView animateWithDuration:0.3 animations:^{
+        flash.alpha = 0;
+    } completion:^(BOOL finished) {
+        [flash removeFromSuperview];
+    }];
+
+    return ok;
+}
 
 @end

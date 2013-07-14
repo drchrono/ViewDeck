@@ -11,11 +11,11 @@
 #import "IIViewDeckController.h"
 #import "ModalViewController.h"
 
-@interface CenterViewController ()
+@interface CenterViewController () <UIGestureRecognizerDelegate, IIViewDeckControllerDelegate>
 
 @end
 
-@implementation CenterViewController
+@implementation CenterViewController 
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -30,25 +30,41 @@
 {
     [super viewDidLoad];
     
+    self.viewDeckController.panningGestureDelegate = self;
+    
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRewind target:self.viewDeckController action:@selector(toggleLeftView)];
     self.navigationController.navigationBar.tintColor = [UIColor purpleColor];
 }
 
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
+    NSIndexPath* indexPath = [self.tableView indexPathForRowAtPoint:[gestureRecognizer locationInView:self.tableView]];
+    return indexPath.section < 2;
+}
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
-
-- (BOOL)viewDeckControllerWillOpenLeftView:(IIViewDeckController *)viewDeckController animated:(BOOL)animated {
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFastForward target:self.viewDeckController action:@selector(toggleLeftView)];
     return YES;
 }
 
-- (BOOL)viewDeckControllerWillCloseLeftView:(IIViewDeckController *)viewDeckController animated:(BOOL)animated {
+- (BOOL)shouldAutorotate {
+    return YES;
+}
+
+- (NSUInteger)supportedInterfaceOrientations {
+    return UIInterfaceOrientationMaskAll;
+}
+
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+}
+
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFastForward target:self.viewDeckController action:@selector(toggleLeftView)];
+}
+
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRewind target:self.viewDeckController action:@selector(toggleLeftView)];
     [(IIViewDeckController*)self.viewDeckController.leftController closeLeftView];
-    return YES;
 }
 
 #pragma mark - Table view data source
@@ -73,6 +89,7 @@
     UITableViewCell *cell = [UITableViewCell tableViewAutoDequeueCell:tableView];
     
     cell.textLabel.text = indexPath.section % 2 ? @"Close Me" : @"Modal";
+    cell.textLabel.text = [cell.textLabel.text stringByAppendingString:indexPath.section >= 2 ? @" (no pan)" : @""];
     
     return cell;
 }

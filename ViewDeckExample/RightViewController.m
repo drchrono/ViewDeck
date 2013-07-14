@@ -34,13 +34,6 @@
     return self;
 }
 
-- (void)didReceiveMemoryWarning
-{
-    // Releases the view if it doesn't have a superview.
-    [super didReceiveMemoryWarning];
-    
-    // Release any cached data, images, etc that aren't in use.
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -52,6 +45,27 @@
     self.pushButton.enabled = NO;
     self.pushButton.layer.opacity = 0.2;
 }
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self addLog:@"view will appear"];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self addLog:@"view will disappear"];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self addLog:@"view did appear"];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    [self addLog:@"view did disappear"];
+}
+
 
 #pragma mark - View lifecycle
 
@@ -85,12 +99,15 @@
     [self.viewDeckController rightViewPushViewControllerOverCenterController:controller];
 }
 
+- (IBAction)moveToLeft:(id)sender {
+    [self.viewDeckController toggleOpenView];
+}
 
 #pragma mark - view deck delegate
 
 - (void)addLog:(NSString*)line {
-    self.tableView.frame = (CGRect) { self.viewDeckController.rightLedge, self.tableView.frame.origin.y, 
-        self.view.frame.size.width - self.viewDeckController.rightLedge, self.tableView.frame.size.height };
+    self.tableView.frame = (CGRect) { self.viewDeckController.rightSize, self.tableView.frame.origin.y,
+        self.view.frame.size.width - self.viewDeckController.rightSize, self.tableView.frame.size.height };
 
     [self.logs addObject:line];
     NSIndexPath* index = [NSIndexPath indexPathForRow:self.logs.count-1 inSection:0];
@@ -109,48 +126,36 @@
 //    shadowLayer.shadowPath = [[UIBezierPath bezierPathWithRect:rect] CGPath];
 //}
 
-- (void)viewDeckController:(IIViewDeckController*)viewDeckController didPanToOffset:(CGFloat)offset {
-    [self addLog:[NSString stringWithFormat:@"Pan: %f", offset]];
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didChangeOffset:(CGFloat)offset orientation:(IIViewDeckOffsetOrientation)orientation panning:(BOOL)panning {
+    [self addLog:[NSString stringWithFormat:@"%@: %f", panning ? @"Pan" : @"Offset", offset]];
 }
 
-- (BOOL)viewDeckControllerWillOpenLeftView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"will open left view"];
-    return YES;
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"will open %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (void)viewDeckControllerDidOpenLeftView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"did open left view"];
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"did open %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (BOOL)viewDeckControllerWillCloseLeftView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"will close left view"];
-    return YES;
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"will close %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (void)viewDeckControllerDidCloseLeftView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"did close left view"];
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"did close %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (BOOL)viewDeckControllerWillOpenRightView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"will open right view"];
-    return YES;
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didShowCenterViewFromSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"did show center view from %@", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (void)viewDeckControllerDidOpenRightView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"did open right view"];
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController willPreviewBounceViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"will preview bounce %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
-- (BOOL)viewDeckControllerWillCloseRightView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"will close right view"];
-    return YES;
-}
-
-- (void)viewDeckControllerDidCloseRightView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"did close right view"];
-}
-
-- (void)viewDeckControllerDidShowCenterView:(IIViewDeckController*)viewDeckController animated:(BOOL)animated {
-    [self addLog:@"did show center view"];
+- (void)viewDeckController:(IIViewDeckController *)viewDeckController didPreviewBounceViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated {
+    [self addLog:[NSString stringWithFormat:@"did preview bounce %@ view", NSStringFromIIViewDeckSide(viewDeckSide)]];
 }
 
 #pragma mark - Table view
@@ -180,6 +185,7 @@
 
     return cell;
 }
+
 
 
 @end
