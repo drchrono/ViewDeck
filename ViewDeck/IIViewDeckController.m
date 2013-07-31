@@ -814,11 +814,11 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
 
 
 - (BOOL)shouldAutomaticallyForwardRotationMethods {
-    return NO;
+    return YES;
 }
 
 - (BOOL)shouldAutomaticallyForwardAppearanceMethods {
-    return NO;
+    return YES;
 }
 
 - (BOOL)automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers {
@@ -1054,6 +1054,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     
     [self relayRotationMethod:^(UIViewController *controller) {
         [controller didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+        [controller viewWillLayoutSubviews];
     }];
     
     [self setAccessibilityForCenterTapper]; // update since the frame and the frame's intersection with the window will have changed
