@@ -139,7 +139,7 @@ static const UIViewAnimationOptions DefaultSwipedAnimationCurve = UIViewAnimatio
 
 static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocity)
 {
-    NSTimeInterval animationDuration = pointsToAnimate / fabsf(velocity);
+    NSTimeInterval animationDuration = pointsToAnimate / fabs(velocity);
     // adjust duration for easing curve, if necessary
     if (DefaultSwipedAnimationCurve != UIViewAnimationOptionCurveLinear) animationDuration *= 1.25;
     return animationDuration;
@@ -743,10 +743,10 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     
     [self doForControllers:^(UIViewController* controller, IIViewDeckSide side) {
         if (controller) {
-            _maxLedge = [self sizeAsLedge:maxSize forSide:side];
-            if (_ledge[side] > _maxLedge)
+            self->_maxLedge = [self sizeAsLedge:maxSize forSide:side];
+            if (self->_ledge[side] > self->_maxLedge)
                 [self setSize:maxSize forSide:side completion:completion];
-            [self setSlidingFrameForOffset:_offset forOrientation:IIViewDeckOffsetOrientationFromIIViewDeckSide(side)]; // should be animated
+            [self setSlidingFrameForOffset:self->_offset forOrientation:IIViewDeckOffsetOrientationFromIIViewDeckSide(side)]; // should be animated
         }
     }];
 }
@@ -866,7 +866,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
                 [self.referenceView insertSubview:controller.view belowSubview:self.slidingControllerView];
             }];
             
-            [self setSlidingFrameForOffset:_offset forOrientation:_offsetOrientation];
+            [self setSlidingFrameForOffset:self->_offset forOrientation:self->_offsetOrientation];
             self.slidingControllerView.hidden = NO;
             
             self.centerView.frame = self.centerViewBounds;
@@ -888,7 +888,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
         // after 0.01 sec, since in certain cases the sliding view is reset.
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.001 * NSEC_PER_SEC), dispatch_get_main_queue(), ^(void){
             if (applyViews) applyViews();
-            [self setSlidingFrameForOffset:_offset forOrientation:_offsetOrientation];
+            [self setSlidingFrameForOffset:self->_offset forOrientation:self->_offsetOrientation];
             [self hideAppropriateSideViews];
         });
         
@@ -911,7 +911,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     if (self.navigationControllerBehavior == IIViewDeckNavigationControllerIntegrated) {
         dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.01 * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-            self.slidingControllerView.frame = (CGRect) { _willAppearOffset, self.slidingControllerView.frame.size };
+            self.slidingControllerView.frame = (CGRect) { self->_willAppearOffset, self.slidingControllerView.frame.size };
         });
     }
     
@@ -966,7 +966,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     return !self.centerController || [self.centerController shouldAutorotate];
 }
 
-- (NSUInteger)supportedInterfaceOrientations {
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     if (self.centerController)
         return [self.centerController supportedInterfaceOrientations];
     
@@ -1203,7 +1203,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
         if (_controllers[side] == controller) return side;
     }
     
-    return NSNotFound;
+    return (unsigned)NSNotFound;
 }
 
 
@@ -1313,9 +1313,9 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     }
     
     [self doForControllers:^(UIViewController *controller, IIViewDeckSide side) {
-        if (from < to && _sideAppeared[side] <= from)
+        if (from < to && self->_sideAppeared[side] <= from)
             return;
-        else if (from > to && _sideAppeared[side] >= from)
+        else if (from > to && self->_sideAppeared[side] >= from)
             return;
         
         if ([self safe_shouldManageAppearanceMethods] && selector && controller) {
@@ -1478,8 +1478,8 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
             return;
         }
         
-        CGFloat longFactor = _bounceDurationFactor ? _bounceDurationFactor : 1;
-        CGFloat shortFactor = _bounceOpenSideDurationFactor ? _bounceOpenSideDurationFactor : (_bounceDurationFactor ? 1-_bounceDurationFactor : 1);
+        CGFloat longFactor = self->_bounceDurationFactor ? self->_bounceDurationFactor : 1;
+        CGFloat shortFactor = self->_bounceOpenSideDurationFactor ? self->_bounceOpenSideDurationFactor : (self->_bounceDurationFactor ? 1-self->_bounceDurationFactor : 1);
       
         // first open the view completely, run the block (to allow changes)
         [self notifyWillOpenSide:side animated:animated];
@@ -1491,7 +1491,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
             [self centerViewHidden];
             // run block if it's defined
             if (bounced) bounced(self);
-            [self performDelegate:@selector(viewDeckController:didBounceViewSide:openingController:) side:side controller:_controllers[side]];
+            [self performDelegate:@selector(viewDeckController:didBounceViewSide:openingController:) side:side controller:self->_controllers[side]];
             
             // now slide the view back to the ledge position
             [UIView animateWithDuration:[self openSlideDuration:YES]*shortFactor delay:0 options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionLayoutSubviews | UIViewAnimationOptionBeginFromCurrentState animations:^{
@@ -1582,7 +1582,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     } completion:^(BOOL finished) {
         // run block if it's defined
         if (bounced) bounced(self);
-        [self performDelegate:@selector(viewDeckController:didBounceViewSide:closingController:) side:side controller:_controllers[side]];
+        [self performDelegate:@selector(viewDeckController:didBounceViewSide:closingController:) side:side controller:self->_controllers[side]];
         
         [UIView animateWithDuration:[self closeSlideDuration:YES]*longFactor delay:0 options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionLayoutSubviews animations:^{
             [self setSlidingFrameForOffset:0 forOrientation:IIViewDeckOffsetOrientationFromIIViewDeckSide(side)];
@@ -1935,7 +1935,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     [CATransaction setValue:[NSNumber numberWithFloat:duration] forKey:kCATransactionAnimationDuration];
     [CATransaction setCompletionBlock:^{
         // only re-hide controller if the view has not been panned mid-animation
-        if (_offset == 0.0f) {
+        if (self->_offset == 0.0f) {
             previewController.view.hidden = YES;
         }
         
@@ -2009,7 +2009,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
     // Calculate steps
     for (int t = 0; t < steps; t++) {
         time = (t / (float)steps) * duration;
-        offset = abs(expf(-zeta * wn * time) * ((Vo / wd) * sin(wd * time)));
+        offset = fabs(expf(-zeta * wn * time) * ((Vo / wd) * sin(wd * time)));
         offset = direction * [self limitOffset:offset forOrientation:IIViewDeckOffsetOrientationFromIIViewDeckSide(viewDeckSide)] + position;
         [values addObject:[NSNumber numberWithFloat:offset]];
     }
@@ -2483,7 +2483,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
                 // swipe to the left
                 // Animation duration based on velocity
                 CGFloat pointsToAnimate = self.slidingControllerView.frame.origin.x;
-                NSTimeInterval animationDuration = fabsf(durationToAnimate(pointsToAnimate, orientationVelocity));
+                NSTimeInterval animationDuration = fabs(durationToAnimate(pointsToAnimate, orientationVelocity));
                 
                 if (v < 0) {
                     [self openSideView:maxSide animated:YES duration:animationDuration completion:nil];
@@ -2498,7 +2498,7 @@ static NSTimeInterval durationToAnimate(CGFloat pointsToAnimate, CGFloat velocit
                 
                 // Animation duration based on velocity
                 CGFloat maxDistance = CGRectGetWidth(self.view.frame) - self.leftSize;
-                CGFloat pointsToAnimate = fabsf(maxDistance - self.slidingControllerView.frame.origin.x);
+                CGFloat pointsToAnimate = fabs(maxDistance - self.slidingControllerView.frame.origin.x);
                 NSTimeInterval animationDuration = durationToAnimate(pointsToAnimate, orientationVelocity);
                 
                 if (v > 0) {
