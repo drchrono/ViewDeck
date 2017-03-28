@@ -1105,7 +1105,7 @@ __typeof__(h) __h = (h);                                    \
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
     _panOrigin = self.slidingControllerView.frame.origin.x;
-    return YES;
+    return NO;
 }
 
 - (CGFloat)locationOfPanner:(UIPanGestureRecognizer*)panner {
