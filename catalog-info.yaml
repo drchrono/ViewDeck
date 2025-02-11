@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ViewDeck
+  description: An implementation of the sliding functionality found in the Path 2.0
+    or Facebook iOS apps.
+  annotations:
+    business-unit: EverHealth
+    github.com/project-slug: drchrono/ViewDeck
+    product: DRC
+spec:
+  type: service
+  lifecycle: production
+  owner: EverHealth
+  implementation:
+    languages:
+    - Objective-C
+    - Ruby
